@@ -83,19 +83,21 @@ class Order
             return '商品已售空或者不存在';
         }
         $this->redis->lpush('users', $people. ',' . $goods . ',' . $number . ',' . $time);
-        $this->redis->setex('user_' . $people . '_' . $time, 3600, '开始');
+        $this->redis->set('user_' . $people . '_' . $time, '开始');
         $resOrder = '';
         print_r("下单成功");
+        $k = 0;
         while (true) {
+            $k++;
+
             //sleep(2);
             $res = $this->redis->get('user_' . $people . '_' . $time);
             print_r("用户{$people}购买结果：{$res}\n");
-            if ($res == '开始') {
-                continue;
-            } else {
+            if ($res != '开始') {
                 $resOrder = $res;
             }
-            if (!$resOrder && $this->redis->llen('users') == 0) {
+            print_r("$resOrder\n");
+            if ($k > 10) {
                 $resOrder = '网络超时';
             }
             if ($resOrder) {
